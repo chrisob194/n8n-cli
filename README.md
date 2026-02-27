@@ -10,9 +10,13 @@ Command Line Interface for n8n. Designed for use by both humans and AI agents.
 # Build the executable
 bun build ./src/cli.ts --compile --outfile n8n
 
-# Usage
+# Configure your n8n instance
+./n8n config set baseUrl https://your-n8n-instance.com
+
+# Set your API key (required for all commands)
 export N8N_API_KEY="your-api-key"
-export N8N_BASE_URL="https://your-n8n-instance.com"
+
+# Verify installation
 ./n8n --help
 ```
 
@@ -30,7 +34,7 @@ n8n config set baseUrl https://your-n8n-instance.com
 n8n config list
 ```
 
-The configuration file contains only non-sensitive settings (e.g., `baseUrl`). API keys are NOT stored for security.
+The configuration file is stored at `~/.config/n8n-cli/config.json`.
 
 ### Environment Variables
 
