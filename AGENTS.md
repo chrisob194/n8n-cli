@@ -18,16 +18,16 @@ Configuration is saved to `~/.config/n8n-cli/config.json` (XDG Base Directory Sp
 
 ```bash
 # Read a configuration value
-n8n config get baseUrl
+n8n config get base_url
 
 # Set a configuration value
-n8n config set baseUrl https://your-n8n-instance.com
+n8n config set base_url https://your-n8n-instance.com
 
 # List all configuration
 n8n config list
 ```
 
-The configuration file contains only non-sensitive settings (e.g., `baseUrl`). API keys are NOT stored for security.
+The configuration file contains only non-sensitive settings (e.g., `base_url`). API keys are NOT stored for security.
 
 ### Environment Variables (Fallback)
 

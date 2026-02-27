@@ -11,8 +11,8 @@ Command Line Interface for n8n. Designed for use by both humans and AI agents.
 bun build ./src/cli.ts --compile --outfile n8n
 
 # Configure your n8n instance
-./n8n config set baseUrl https://your-n8n-instance.com
-./n8n config set apiKey your-api-key
+./n8n config set base_url https://your-n8n-instance.com
+./n8n config set api_key your-api-key
 
 # Verify installation
 ./n8n --help
@@ -24,13 +24,13 @@ Configuration is saved to `~/.config/n8n-cli/config.json` (XDG Base Directory Sp
 
 ```bash
 # View configuration
-n8n config get baseUrl
-n8n config get apiKey
+n8n config get base_url
+n8n config get api_key
 n8n config list
 
 # Update configuration
-n8n config set baseUrl https://your-n8n-instance.com
-n8n config set apiKey your-api-key
+n8n config set base_url https://your-n8n-instance.com
+n8n config set api_key your-api-key
 ```
 
 ## Quick Start
