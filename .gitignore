@@ -1,0 +1,12 @@
+node_modules/
+.bun/
+dist/
+*.log
+.env
+.env.*
+*.lock
+bun.lockb
+.DS_Store
+*.swp
+*.swo
+*~
