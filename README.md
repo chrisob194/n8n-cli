@@ -12,9 +12,7 @@ bun build ./src/cli.ts --compile --outfile n8n
 
 # Configure your n8n instance
 ./n8n config set baseUrl https://your-n8n-instance.com
-
-# Set your API key (required for all commands)
-export N8N_API_KEY="your-api-key"
+./n8n config set apiKey your-api-key
 
 # Verify installation
 ./n8n --help
@@ -22,35 +20,18 @@ export N8N_API_KEY="your-api-key"
 
 ## Configuration
 
-The CLI follows standard Unix CLI patterns: user configuration is stored locally, with environment variables as fallback.
-
-### User Configuration
-
 Configuration is saved to `~/.config/n8n-cli/config.json` (XDG Base Directory Specification).
 
 ```bash
+# View configuration
 n8n config get baseUrl
-n8n config set baseUrl https://your-n8n-instance.com
+n8n config get apiKey
 n8n config list
+
+# Update configuration
+n8n config set baseUrl https://your-n8n-instance.com
+n8n config set apiKey your-api-key
 ```
-
-The configuration file is stored at `~/.config/n8n-cli/config.json`.
-
-### Environment Variables
-
-| Variable      | Required | Default            | Description              |
-|---------------|----------|--------------------|--------------------------|
-| `N8N_API_KEY` | Yes      | -                  | API key for authentication |
-| `N8N_BASE_URL` | No       | `http://localhost:5678` | Base URL of n8n instance |
-
-### Precedence
-
-Configuration is read in priority order (highest to lowest):
-
-1. CLI flags (e.g., `--base-url`)
-2. Environment variables (`N8N_BASE_URL`)
-3. User configuration (`~/.config/n8n-cli/config.json`)
-4. Hardcoded defaults
 
 ## Quick Start
 
