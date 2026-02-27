@@ -1,0 +1,6 @@
+src/
+api-1.json
+AGENTS.md
+*.ts
+.git/
+bunfig.toml

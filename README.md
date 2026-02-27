@@ -6,16 +6,30 @@ Command Line Interface for n8n. Designed for use by both humans and AI agents.
 
 ## Installation
 
+### Quick Install (recommended)
+
+```bash
+# With Bun
+bun install -g @chrisob/n8n-cli
+
+# Or with npm
+npm install -g @chrisob/n8n-cli
+
+# Verify
+n8n --help
+
+# Or run without installing
+bunx @chrisob/n8n-cli --help
+```
+
+### From Source
+
 ```bash
 # Build the executable
 bun build ./src/cli.ts --compile --outfile n8n
 
-# Configure your n8n instance
-./n8n config set base_url https://your-n8n-instance.com
-./n8n config set api_key your-api-key
-
-# Verify installation
-./n8n --help
+# Install globally
+bun install -g ./n8n
 ```
 
 ## Configuration
@@ -57,6 +71,9 @@ bun run src/cli.ts workflow list
 
 # Build executable
 bun build ./src/cli.ts --compile --outfile n8n
+
+# Publish to npm registry
+bun publish --access public
 ```
 
 ## Documentation

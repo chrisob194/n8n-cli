@@ -1,0 +1,16 @@
+{
+  "name": "@chrisob/n8n-cli",
+  "version": "1.0.0",
+  "description": "CLI for interacting with n8n Public API",
+  "bin": {
+    "n8n": "./n8n"
+  },
+  "files": [
+    "n8n"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": ["n8n", "cli", "automation"],
+  "license": "MIT"
+}

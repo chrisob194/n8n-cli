@@ -53,10 +53,14 @@ Configuration is read in priority order (highest to lowest):
 # Build the executable
 bun build ./src/cli.ts --compile --outfile n8n
 
-# Usage
-export N8N_API_KEY="your-api-key"
-export N8N_BASE_URL="https://your-n8n-instance.com"
-./n8n --help
+# Installazione globale con Bun
+bun install -g ./n8n
+
+# Usage (se ~/.bun/bin è nel PATH)
+n8n --help
+
+# Oppure usa bunx senza installazione
+bunx ./n8n --help
 ```
 
 ## Code Structure
@@ -204,6 +208,9 @@ bun build ./src/cli.ts --compile --outfile n8n
 bun build ./src/cli.ts --compile --target=bun-linux-x64 --outfile n8n-linux
 bun build ./src/cli.ts --compile --target=bun-windows-x64 --outfile n8n.exe
 bun build ./src/cli.ts --compile --target=bun-darwin-arm64 --outfile n8n-mac
+
+# Pubblicare su npm registry
+bun publish --access public
 ```
 
 ## Notes for Agents
