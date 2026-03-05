@@ -15,6 +15,5 @@ bun.lockb
 # Local files
 cookies.txt
 n8n
-prd.json
 progress.txt
 .opencode/

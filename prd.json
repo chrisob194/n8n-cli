@@ -1,0 +1,68 @@
+[
+  {
+    "category": "infrastructure",
+    "description": "Implementa Config - lettura variabili env (N8N_API_KEY, N8N_BASE_URL), config file (~/.config/n8n-cli/config.json), CLI flags con priorità",
+    "steps": ["Leggi env vars N8N_API_KEY e N8N_BASE_URL", "Leggi/scrivi config file in ~/.config/n8n-cli/config.json", "Supporta CLI flags --api-key e --base-url", "Implementa priorità: CLI flags > env > config file > default"],
+    "passes": true
+  },
+  {
+    "category": "infrastructure",
+    "description": "Implementa HTTP Client - wrapper fetch con auth header, gestione errori, timeout",
+    "steps": ["Crea funzione fetch con auth header (Bearer token)", "Gestisci errori API (4xx, 5xx)", "Implementa timeout request", "Supporta metodi GET, POST, PUT, DELETE, PATCH"],
+    "passes": false
+  },
+  {
+    "category": "infrastructure",
+    "description": "Implementa Output Formatter - JSON mode per agenti, output tabellare per umani",
+    "steps": ["Formatta output JSON con flag --json", "Formatta output tabellare per liste", "Formatta output dettagliato per singoli elementi", "Gestisci errori in formato leggibile"],
+    "passes": false
+  },
+  {
+    "category": "commands",
+    "description": "Implementa comandi config: get, set, list",
+    "steps": ["config get <key> - legge valore configurazione", "config set <key> <value> - salva valore su file", "config list - mostra tutta la configurazione"],
+    "passes": false
+  },
+  {
+    "category": "commands",
+    "description": "Implementa comandi workflow: list, get, create, update, delete",
+    "steps": ["workflow list con filtri (--active, --tags, --name, --project-id, --limit)", "workflow get con --exclude-pinned-data", "workflow create da file JSON o inline", "workflow update <id> <file>", "workflow delete <id>"],
+    "passes": false
+  },
+  {
+    "category": "commands",
+    "description": "Implementa comandi workflow: activate, deactivate, tags",
+    "steps": ["workflow activate <id> con --version-id opzionale", "workflow deactivate <id>", "workflow tags <id> - get tags", "workflow tags <id> --set <tagIds> - set tags"],
+    "passes": false
+  },
+  {
+    "category": "commands",
+    "description": "Implementa comandi execution: list, get, delete, stop, retry",
+    "steps": ["execution list con filtri (--status, --workflow-id, --project-id, --include-data, --limit)", "execution get con --include-data", "execution delete <id>", "execution stop <id>", "execution retry <id> con --load-workflow"],
+    "passes": false
+  },
+  {
+    "category": "commands",
+    "description": "Implementa comandi credential: list, get, schema",
+    "steps": ["credential list con --limit", "credential get <id>", "credential schema <typeName> - mostra schema tipo credenziale"],
+    "passes": false
+  },
+  {
+    "category": "commands",
+    "description": "Implementa comandi credential: create, update, delete, transfer",
+    "steps": ["credential create <file.json>", "credential update <id> <file.json>", "credential delete <id>", "credential transfer <id> --destination <projectId>"],
+    "passes": false
+  },
+  {
+    "category": "quality",
+    "description": "Implementa error handling con exit codes appropriati",
+    "steps": ["Exit 0: successo", "Exit 1: API error, network error, invalid args", "Exit 2: config error (missing API key)"],
+    "passes": false
+  },
+  {
+    "category": "quality",
+    "description": "Verifica finale: test completi e build",
+    "steps": ["Run TypeScript typecheck", "Run lint se presente", "Run test se presenti", "Build eseguibile con bun build --compile"],
+    "passes": false
+  }
+]
