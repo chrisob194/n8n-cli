@@ -57,8 +57,8 @@ function writeConfigFile(config: Record<string, string>): void {
 }
 
 async function request<T>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
   endpoint: string,
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   body?: unknown,
   queryParams?: Record<string, string>
 ): Promise<T> {
@@ -405,6 +405,210 @@ async function workflowTags(args: string[]): Promise<void> {
   }
 }
 
+async function executionList(args: string[]): Promise<void> {
+  const params: Record<string, string> = {};
+  
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--status" && args[i + 1]) {
+      params["status"] = args[i + 1];
+      i++;
+    } else if (args[i] === "--workflow-id" && args[i + 1]) {
+      params["workflowId"] = args[i + 1];
+      i++;
+    } else if (args[i] === "--project-id" && args[i + 1]) {
+      params["projectId"] = args[i + 1];
+      i++;
+    } else if (args[i] === "--include-data") {
+      params["includeData"] = "true";
+    } else if (args[i] === "--limit" && args[i + 1]) {
+      params["limit"] = args[i + 1];
+      i++;
+    }
+  }
+
+  const result = await request<{ data: unknown[] }>("/executions", "GET", undefined, params);
+  
+  if (jsonMode) {
+    jsonOutput(result.data);
+  } else {
+    tableOutput(result.data as unknown[], ["id", "workflowId", "status", "mode", "startedAt", "finishedAt"]);
+  }
+}
+
+async function executionGet(args: string[]): Promise<void> {
+  const id = args[0];
+  if (!id) throw { code: 1, message: "Usage: n8n execution get <id>" };
+  
+  const params: Record<string, string> = {};
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--include-data") {
+      params["includeData"] = "true";
+    }
+  }
+
+  const result = await request<unknown>(`/executions/${id}`, "GET", undefined, params);
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "workflowId", "status", "mode", "startedAt", "finishedAt", "data", "error"]);
+  }
+}
+
+async function executionDelete(args: string[]): Promise<void> {
+  const id = args[0];
+  if (!id) throw { code: 1, message: "Usage: n8n execution delete <id>" };
+  
+  await request(`/executions/${id}`, "DELETE");
+  
+  if (jsonMode) {
+    jsonOutput({ deleted: true, id });
+  } else {
+    console.log(`Execution '${id}' deleted`);
+  }
+}
+
+async function executionStop(args: string[]): Promise<void> {
+  const id = args[0];
+  if (!id) throw { code: 1, message: "Usage: n8n execution stop <id>" };
+  
+  const result = await request<unknown>(`/executions/${id}`, "POST", { action: "stop" });
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "status", "stoppedAt"]);
+  }
+}
+
+async function executionRetry(args: string[]): Promise<void> {
+  const id = args[0];
+  if (!id) throw { code: 1, message: "Usage: n8n execution retry <id>" };
+  
+  const params: Record<string, string> = {};
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--load-workflow") {
+      params["loadWorkflow"] = "true";
+    }
+  }
+
+  const result = await request<unknown>(`/executions/${id}/retry`, "POST", undefined, params);
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "status", "startedAt"]);
+  }
+}
+
+async function credentialList(args: string[]): Promise<void> {
+  const params: Record<string, string> = {};
+  
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--limit" && args[i + 1]) {
+      params["limit"] = args[i + 1];
+      i++;
+    }
+  }
+
+  const result = await request<{ data: unknown[] }>("/credentials", "GET", undefined, params);
+  
+  if (jsonMode) {
+    jsonOutput(result.data);
+  } else {
+    tableOutput(result.data as unknown[], ["id", "name", "type", "createdAt", "updatedAt"]);
+  }
+}
+
+async function credentialGet(args: string[]): Promise<void> {
+  const id = args[0];
+  if (!id) throw { code: 1, message: "Usage: n8n credential get <id>" };
+  
+  const result = await request<unknown>(`/credentials/${id}`, "GET");
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "name", "type", "data", "nodes", "createdAt", "updatedAt"]);
+  }
+}
+
+async function credentialSchema(args: string[]): Promise<void> {
+  const typeName = args[0];
+  if (!typeName) throw { code: 1, message: "Usage: n8n credential schema <typeName>" };
+  
+  const result = await request<unknown>(`/credentials/schema/${typeName}`, "GET");
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    console.log(JSON.stringify(result, null, 2));
+  }
+}
+
+async function credentialCreate(args: string[]): Promise<void> {
+  const jsonInput = args[0];
+  if (!jsonInput) throw { code: 1, message: "Usage: n8n credential create <file.json>" };
+  
+  const body = await parseJsonInput(jsonInput);
+  const result = await request<unknown>("/credentials", "POST", body);
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "name", "type", "createdAt"]);
+  }
+}
+
+async function credentialUpdate(args: string[]): Promise<void> {
+  const [id, jsonInput] = args;
+  if (!id || !jsonInput) throw { code: 1, message: "Usage: n8n credential update <id> <file.json>" };
+  
+  const body = await parseJsonInput(jsonInput);
+  const result = await request<unknown>(`/credentials/${id}`, "PATCH", body);
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "name", "type", "updatedAt"]);
+  }
+}
+
+async function credentialDelete(args: string[]): Promise<void> {
+  const id = args[0];
+  if (!id) throw { code: 1, message: "Usage: n8n credential delete <id>" };
+  
+  await request(`/credentials/${id}`, "DELETE");
+  
+  if (jsonMode) {
+    jsonOutput({ deleted: true, id });
+  } else {
+    console.log(`Credential '${id}' deleted`);
+  }
+}
+
+async function credentialTransfer(args: string[]): Promise<void> {
+  const id = args[0];
+  let destinationId: string | undefined;
+  
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--destination" && args[i + 1]) {
+      destinationId = args[i + 1];
+      i++;
+    }
+  }
+  
+  if (!id || !destinationId) throw { code: 1, message: "Usage: n8n credential transfer <id> --destination <projectId>" };
+  
+  const result = await request<unknown>(`/credentials/${id}/transfer`, "POST", { destinationId });
+  
+  if (jsonMode) {
+    jsonOutput(result);
+  } else {
+    printItem(result as Record<string, unknown>, ["id", "name", "type", "projectId"]);
+  }
+}
+
 function showHelp(): void {
   console.log(`n8n-cli - CLI for n8n Public API v1.1.1
 
@@ -487,11 +691,46 @@ async function main(): Promise<void> {
       return;
     }
 
-    if (category === "execution" || category === "credential") {
-      if (!action) {
-        throw { code: 1, message: `Usage: n8n ${category} <action> [args]` };
+    if (category === "execution") {
+      if (!action) throw { code: 1, message: "Usage: n8n execution <list|get|delete|stop|retry> [args]" };
+      
+      if (action === "list") {
+        await executionList(rest);
+      } else if (action === "get") {
+        await executionGet(rest);
+      } else if (action === "delete") {
+        await executionDelete(rest);
+      } else if (action === "stop") {
+        await executionStop(rest);
+      } else if (action === "retry") {
+        await executionRetry(rest);
+      } else {
+        throw { code: 1, message: `Unknown execution action: ${action}` };
       }
-      throw { code: 1, message: `${category} commands not implemented yet` };
+      return;
+    }
+
+    if (category === "credential") {
+      if (!action) throw { code: 1, message: "Usage: n8n credential <list|get|schema|create|update|delete|transfer> [args]" };
+      
+      if (action === "list") {
+        await credentialList(rest);
+      } else if (action === "get") {
+        await credentialGet(rest);
+      } else if (action === "schema") {
+        await credentialSchema(rest);
+      } else if (action === "create") {
+        await credentialCreate(rest);
+      } else if (action === "update") {
+        await credentialUpdate(rest);
+      } else if (action === "delete") {
+        await credentialDelete(rest);
+      } else if (action === "transfer") {
+        await credentialTransfer(rest);
+      } else {
+        throw { code: 1, message: `Unknown credential action: ${action}` };
+      }
+      return;
     }
 
     throw { code: 1, message: `Unknown command: ${category}. Run 'n8n help' for usage.` };
