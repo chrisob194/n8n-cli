@@ -4,6 +4,7 @@ dist/
 *.log
 .env
 .env.*
+scripts/test.env
 *.lock
 bun.lockb
 .DS_Store
