@@ -58,7 +58,7 @@ function writeConfigFile(config: Record<string, string>): void {
 
 async function request<T>(
   endpoint: string,
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   body?: unknown,
   queryParams?: Record<string, string>
 ): Promise<T> {
@@ -323,7 +323,7 @@ async function workflowUpdate(args: string[]): Promise<void> {
   if (!id || !jsonInput) throw { code: 1, message: "Usage: n8n workflow update <id> <file.json>" };
   
   const body = await parseJsonInput(jsonInput);
-  const result = await request<unknown>(`/workflows/${id}`, "PATCH", body);
+  const result = await request<unknown>(`/workflows/${id}`, "PUT", body);
   
   if (jsonMode) {
     jsonOutput(result);
@@ -472,7 +472,7 @@ async function executionStop(args: string[]): Promise<void> {
   const id = args[0];
   if (!id) throw { code: 1, message: "Usage: n8n execution stop <id>" };
   
-  const result = await request<unknown>(`/executions/${id}`, "POST", { action: "stop" });
+  const result = await request<unknown>(`/executions/${id}/stop`, "POST");
   
   if (jsonMode) {
     jsonOutput(result);
@@ -523,13 +523,20 @@ async function credentialList(args: string[]): Promise<void> {
 async function credentialGet(args: string[]): Promise<void> {
   const id = args[0];
   if (!id) throw { code: 1, message: "Usage: n8n credential get <id>" };
-  
-  const result = await request<unknown>(`/credentials/${id}`, "GET");
-  
+
+  // The n8n API does not have a GET /credentials/{id} endpoint.
+  // We fetch the full list and filter by ID client-side.
+  const result = await request<{ data: unknown[] }>("/credentials", "GET");
+  const item = (result.data as Record<string, unknown>[]).find(c => c["id"] === id);
+
+  if (!item) {
+    throw { code: 1, message: `Credential '${id}' not found` };
+  }
+
   if (jsonMode) {
-    jsonOutput(result);
+    jsonOutput(item);
   } else {
-    printItem(result as Record<string, unknown>, ["id", "name", "type", "data", "nodes", "createdAt", "updatedAt"]);
+    printItem(item as Record<string, unknown>, ["id", "name", "type", "data", "nodes", "createdAt", "updatedAt"]);
   }
 }
 
@@ -600,7 +607,7 @@ async function credentialTransfer(args: string[]): Promise<void> {
   
   if (!id || !destinationId) throw { code: 1, message: "Usage: n8n credential transfer <id> --destination <projectId>" };
   
-  const result = await request<unknown>(`/credentials/${id}/transfer`, "POST", { destinationId });
+  const result = await request<unknown>(`/credentials/${id}/transfer`, "PUT", { destinationId });
   
   if (jsonMode) {
     jsonOutput(result);
