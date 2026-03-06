@@ -15,7 +15,7 @@
     "category": "infrastructure",
     "description": "Implementa Output Formatter - JSON mode per agenti, output tabellare per umani",
     "steps": ["Formatta output JSON con flag --json", "Formatta output tabellare per liste", "Formatta output dettagliato per singoli elementi", "Gestisci errori in formato leggibile"],
-    "passes": false
+    "passes": true
   },
   {
     "category": "commands",
