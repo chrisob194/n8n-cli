@@ -6,12 +6,20 @@
     "n8n": "./src/cli.ts"
   },
   "scripts": {
-    "test": "bun run scripts/test.ts",
-    "test:config": "bun run scripts/test.ts config list",
-    "test:workflow": "bun run scripts/test.ts workflow list"
+    "test": "bun test tests/",
+    "test:config": "bun test tests/config.test.ts",
+    "test:workflow": "bun test tests/workflow.test.ts",
+    "test:execution": "bun test tests/execution.test.ts",
+    "test:credential": "bun test tests/credential.test.ts",
+    "test:tag": "bun test tests/tag.test.ts",
+    "test:variable": "bun test tests/variable.test.ts",
+    "test:project": "bun test tests/project.test.ts",
+    "test:user": "bun test tests/user.test.ts",
+    "test:audit": "bun test tests/audit.test.ts",
+    "test:source-control": "bun test tests/source-control.test.ts"
   },
   "files": [
-    "src/cli.ts"
+    "src/"
   ],
   "publishConfig": {
     "access": "public"
