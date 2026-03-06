@@ -9,7 +9,7 @@
     "category": "infrastructure",
     "description": "Implementa HTTP Client - wrapper fetch con auth header, gestione errori, timeout",
     "steps": ["Crea funzione fetch con auth header (Bearer token)", "Gestisci errori API (4xx, 5xx)", "Implementa timeout request", "Supporta metodi GET, POST, PUT, DELETE, PATCH"],
-    "passes": false
+    "passes": true
   },
   {
     "category": "infrastructure",
