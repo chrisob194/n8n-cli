@@ -2,12 +2,13 @@
 
 import { existsSync } from "fs";
 import { join } from "path";
+import { file, $ } from "bun";
 
 // Load test.env if present
 const envFile = join(import.meta.dir, "test.env");
 if (existsSync(envFile)) {
-  const content = Bun.file(envFile).text();
-  for (const line of (await content).split("\n")) {
+  const content = await file(envFile).text();
+  for (const line of content.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const [key, ...valueParts] = trimmed.split("=");
@@ -39,26 +40,19 @@ if (args.length === 0) {
   process.exit(1);
 }
 
-const testCommand = ["bun", "run", "src/cli.ts", ...args];
-console.log(`Running: ${testCommand.join(" ")}`);
+console.log(`Running: bun run src/cli.ts ${args.join(" ")}`);
 console.log(`With N8N_BASE_URL=${baseUrl}`);
 console.log("");
 
-const proc = Bun.spawn(testCommand, {
-  env: { ...process.env, N8N_API_KEY: apiKey, N8N_BASE_URL: baseUrl },
-  stdout: "pipe",
-  stderr: "pipe",
-});
+const result = await $`bun run src/cli.ts ${args}`
+  .env({ ...process.env, N8N_API_KEY: apiKey, N8N_BASE_URL: baseUrl })
+  .nothrow();
 
-const output = await new Response(proc.stdout).text();
-const errorOutput = await new Response(proc.stderr).text();
+if (result.stdout) console.log(result.stdout.toString());
+if (result.stderr) console.error(result.stderr.toString());
 
-if (output) console.log(output);
-if (errorOutput) console.error(errorOutput);
-
-const exitCode = await proc.exited;
-if (exitCode !== 0) {
-  console.error(`Test failed with exit code ${exitCode}`);
+if (result.exitCode !== 0) {
+  console.error(`Test failed with exit code ${result.exitCode}`);
   process.exit(1);
 }
 

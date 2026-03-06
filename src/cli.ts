@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+import { file, write, $ } from "bun";
+
 const CONFIG_FILE = `${process.env.HOME || process.env.USERPROFILE}/.config/n8n-cli/config.json`;
 const DEFAULT_BASE_URL = "http://localhost:5678";
 const TIMEOUT_MS = 30000;
@@ -27,7 +29,7 @@ async function getConfig(): Promise<{ baseUrl: string; apiKey: string | null }> 
   
   let fileConfig: Record<string, string> = {};
   try {
-    const content = await Bun.file(CONFIG_FILE).text();
+    const content = await file(CONFIG_FILE).text();
     fileConfig = JSON.parse(content);
   } catch {
   }
@@ -40,20 +42,17 @@ async function getConfig(): Promise<{ baseUrl: string; apiKey: string | null }> 
 
 async function readConfigFile(): Promise<Record<string, string>> {
   try {
-    const content = await Bun.file(CONFIG_FILE).text();
+    const content = await file(CONFIG_FILE).text();
     return JSON.parse(content);
   } catch {
     return {};
   }
 }
 
-function writeConfigFile(config: Record<string, string>): void {
+async function writeConfigFile(config: Record<string, string>): Promise<void> {
   const dir = CONFIG_FILE.replace(/\/[^/]+$/, "");
-  try {
-    Bun.spawnSync(["mkdir", "-p", dir]);
-  } catch {
-  }
-  Bun.write(CONFIG_FILE, JSON.stringify(config, null, 2));
+  await $`mkdir -p ${dir}`.quiet();
+  await write(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
 async function request<T>(
@@ -198,7 +197,7 @@ async function parseJsonInput(input: string): Promise<unknown> {
     if (input.startsWith("{") || input.startsWith("[")) {
       return JSON.parse(input);
     }
-    const content = await Bun.file(input).text();
+    const content = await file(input).text();
     return JSON.parse(content);
   } catch {
     throw { code: 1, message: `Invalid JSON: ${input}` };
@@ -227,7 +226,7 @@ async function configSet(key: string, value: string): Promise<void> {
   
   const config = await readConfigFile();
   config[key] = value;
-  writeConfigFile(config);
+  await writeConfigFile(config);
   
   if (jsonMode) {
     jsonOutput({ key, value });

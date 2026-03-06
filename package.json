@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "CLI for interacting with n8n Public API",
   "bin": {
-    "n8n": "./n8n"
+    "n8n": "./src/cli.ts"
   },
   "scripts": {
     "test": "bun run scripts/test.ts",
@@ -11,11 +11,14 @@
     "test:workflow": "bun run scripts/test.ts workflow list"
   },
   "files": [
-    "n8n"
+    "src/cli.ts"
   ],
   "publishConfig": {
     "access": "public"
   },
   "keywords": ["n8n", "cli", "automation"],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "bun-types": "latest"
+  }
 }
