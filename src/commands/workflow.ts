@@ -7,9 +7,13 @@ const WORKFLOW_ALLOWED_FIELDS = ["name", "nodes", "connections", "settings", "st
 function sanitizeWorkflowBody(body: unknown): unknown {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const src = body as Record<string, unknown>;
+  // Unwrap { success, data } format returned by --json output
+  const target = (typeof src.data === "object" && src.data !== null && !Array.isArray(src.data))
+    ? src.data as Record<string, unknown>
+    : src;
   const result: Record<string, unknown> = {};
   for (const field of WORKFLOW_ALLOWED_FIELDS) {
-    if (field in src) result[field] = src[field];
+    if (field in target) result[field] = target[field];
   }
   return result;
 }
