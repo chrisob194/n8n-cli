@@ -27,7 +27,7 @@
     "category": "commands",
     "description": "Implementa comandi workflow: list, get, create, update, delete",
     "steps": ["workflow list con filtri (--active, --tags, --name, --project-id, --limit)", "workflow get con --exclude-pinned-data", "workflow create da file JSON o inline", "workflow update <id> <file>", "workflow delete <id>"],
-    "passes": false
+    "passes": true
   },
   {
     "category": "commands",
