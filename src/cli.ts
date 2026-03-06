@@ -615,16 +615,149 @@ async function credentialTransfer(args: string[]): Promise<void> {
   }
 }
 
+const WORKFLOW_FLAGS: Record<string, string[]> = {
+  list: ["--active", "--tags", "--name", "--project-id", "--limit", "--json"],
+  get: ["--exclude-pinned-data", "--json"],
+  create: ["--json"],
+  update: ["--json"],
+  delete: ["--json"],
+  activate: ["--version-id", "--json"],
+  deactivate: ["--json"],
+  tags: ["--set", "--json"],
+};
+
+const EXECUTION_FLAGS: Record<string, string[]> = {
+  list: ["--status", "--workflow-id", "--project-id", "--include-data", "--limit", "--json"],
+  get: ["--include-data", "--json"],
+  delete: ["--json"],
+  stop: ["--json"],
+  retry: ["--load-workflow", "--json"],
+};
+
+const CREDENTIAL_FLAGS: Record<string, string[]> = {
+  list: ["--limit", "--json"],
+  get: ["--json"],
+  schema: ["--json"],
+  create: ["--json"],
+  update: ["--json"],
+  delete: ["--json"],
+  transfer: ["--destination", "--json"],
+};
+
+const WORKFLOW_ID_ACTIONS = new Set(["get", "update", "delete", "activate", "deactivate", "tags"]);
+const EXECUTION_ID_ACTIONS = new Set(["get", "delete", "stop", "retry"]);
+const CREDENTIAL_ID_ACTIONS = new Set(["get", "update", "delete", "transfer"]);
+
+function getFlagsForCommand(category: string, action: string): string[] {
+  switch (category) {
+    case "workflow": return WORKFLOW_FLAGS[action] ?? [];
+    case "execution": return EXECUTION_FLAGS[action] ?? [];
+    case "credential": return CREDENTIAL_FLAGS[action] ?? [];
+    default: return [];
+  }
+}
+
+async function fetchIds(endpoint: string): Promise<string[]> {
+  try {
+    const config = await getConfig();
+    if (!config.apiKey) return [];
+    const url = new URL(`${config.baseUrl}/api/v1${endpoint}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "X-N8N-API-KEY": config.apiKey },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!response.ok) return [];
+    const data = await response.json() as { data?: unknown[] };
+    const items = data.data ?? [];
+    if (!Array.isArray(items)) return [];
+    return items.map((item: unknown) => String((item as Record<string, unknown>)["id"] ?? "")).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function getCompletions(argv: string[], cword: number): Promise<string[]> {
+  const category = argv[0];
+  const action = argv[1];
+
+  if (cword === 0) {
+    return ["config", "workflow", "execution", "credential", "completion", "help"];
+  }
+
+  if (cword === 1) {
+    switch (category) {
+      case "workflow": return ["list", "get", "create", "update", "delete", "activate", "deactivate", "tags"];
+      case "execution": return ["list", "get", "delete", "stop", "retry"];
+      case "credential": return ["list", "get", "schema", "create", "update", "delete", "transfer"];
+      case "config": return ["get", "set", "list"];
+      case "completion": return ["bash", "zsh", "fish"];
+      default: return [];
+    }
+  }
+
+  if (cword === 2) {
+    if (category === "workflow" && WORKFLOW_ID_ACTIONS.has(action)) {
+      return fetchIds("/workflows");
+    }
+    if (category === "execution" && EXECUTION_ID_ACTIONS.has(action)) {
+      return fetchIds("/executions");
+    }
+    if (category === "credential" && CREDENTIAL_ID_ACTIONS.has(action)) {
+      return fetchIds("/credentials");
+    }
+    return getFlagsForCommand(category, action);
+  }
+
+  return getFlagsForCommand(category, action);
+}
+
+function showCompletion(shell: string): void {
+  if (shell === "bash") {
+    console.log(`_n8n_complete() {
+  local cur="\${COMP_WORDS[COMP_CWORD]}"
+  local prev_words=("\${COMP_WORDS[@]:1:\$((COMP_CWORD-1))}")
+  local completions
+  completions=$(N8N_COMPLETE=bash N8N_COMP_CWORD=$((COMP_CWORD-1)) n8n "\${prev_words[@]}" 2>/dev/null)
+  COMPREPLY=($(compgen -W "$completions" -- "$cur"))
+  return 0
+}
+complete -F _n8n_complete n8n`);
+  } else if (shell === "zsh") {
+    console.log(`#compdef n8n
+_n8n() {
+  local completions
+  completions=(\$(N8N_COMPLETE=zsh N8N_COMP_CWORD=\$((CURRENT-2)) n8n "\${words[2,\$((CURRENT-1))]}" 2>/dev/null))
+  compadd -a completions
+}
+compdef _n8n n8n`);
+  } else if (shell === "fish") {
+    console.log(`function __n8n_complete
+  set cmd (commandline -opc)
+  set -e cmd[1]
+  set cword (count $cmd)
+  N8N_COMPLETE=fish N8N_COMP_CWORD=$cword n8n $cmd 2>/dev/null
+end
+complete -c n8n -f -a "(__n8n_complete)"`);
+  } else {
+    throw { code: 1, message: `Unknown shell: ${shell}. Supported: bash, zsh, fish` };
+  }
+}
+
 function showHelp(): void {
   console.log(`n8n-cli - CLI for n8n Public API v1.1.1
 
 Usage: n8n <command> [options]
 
 Commands:
-  config <action> [args]    Manage configuration
+  config <action> [args]     Manage configuration
   workflow <action> [args]   Manage workflows
-  execution <action> [args] Manage executions
+  execution <action> [args]  Manage executions
   credential <action> [args] Manage credentials
+  completion <shell>         Generate shell completion script
 
 Global Options:
   --json              Output JSON format
@@ -636,6 +769,11 @@ Config Commands:
   config set <key> <value>  Set config value
   config list               List all config
 
+Shell Completion:
+  eval "\$(n8n completion bash)"   # Add to ~/.bashrc
+  eval "\$(n8n completion zsh)"    # Add to ~/.zshrc
+  n8n completion fish | source    # Add to ~/.config/fish/config.fish
+
 Examples:
   n8n config set base_url https://n8n.example.com
   n8n workflow list --active
@@ -646,6 +784,13 @@ For more info: https://docs.n8n.io/api/`);
 
 async function main(): Promise<void> {
   try {
+    if (process.env.N8N_COMPLETE) {
+      const cword = parseInt(process.env.N8N_COMP_CWORD || "0");
+      const completions = await getCompletions(args, cword);
+      console.log(completions.join("\n"));
+      return;
+    }
+
     if (args.length === 0 || args[0] === "help" || args[0] === "--help" || args[0] === "-h") {
       showHelp();
       return;
@@ -736,6 +881,11 @@ async function main(): Promise<void> {
       } else {
         throw { code: 1, message: `Unknown credential action: ${action}` };
       }
+      return;
+    }
+
+    if (category === "completion") {
+      showCompletion(action || "bash");
       return;
     }
 
