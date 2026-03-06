@@ -2,12 +2,15 @@ import { request, parseJsonInput } from "../http.ts";
 import { jsonOutput, tableOutput, printItem } from "../output.ts";
 import type { Config } from "../types.ts";
 
-const WORKFLOW_EXTRA_FIELDS = ["versionId", "pinData", "meta", "hash", "triggerCount", "usedCredentials", "homeProject", "sharedWithProjects"];
+const WORKFLOW_ALLOWED_FIELDS = ["name", "nodes", "connections", "settings", "staticData"];
 
 function sanitizeWorkflowBody(body: unknown): unknown {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-  const result = { ...(body as Record<string, unknown>) };
-  for (const field of WORKFLOW_EXTRA_FIELDS) delete result[field];
+  const src = body as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+  for (const field of WORKFLOW_ALLOWED_FIELDS) {
+    if (field in src) result[field] = src[field];
+  }
   return result;
 }
 
