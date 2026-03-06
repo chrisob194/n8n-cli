@@ -21,7 +21,7 @@
     "category": "commands",
     "description": "Implementa comandi config: get, set, list",
     "steps": ["config get <key> - legge valore configurazione", "config set <key> <value> - salva valore su file", "config list - mostra tutta la configurazione"],
-    "passes": false
+    "passes": true
   },
   {
     "category": "commands",
