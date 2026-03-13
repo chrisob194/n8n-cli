@@ -98,9 +98,9 @@ async function main(): Promise<void> {
     }
   } catch (e: unknown) {
     if (e && typeof e === "object" && "code" in e && "message" in e) {
-      const err = e as { code: number; message: string };
+      const err = e as { code: number | string; message: string };
       printError(err.message, jsonMode);
-      process.exit(err.code);
+      process.exit(typeof err.code === "number" ? err.code : 1);
     }
     const err = e as Error;
     printError(err.message || String(e), jsonMode);

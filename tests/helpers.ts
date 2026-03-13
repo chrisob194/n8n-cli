@@ -1,13 +1,18 @@
 import { $ } from "bun";
 import { expect } from "bun:test";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, copyFileSync } from "fs";
 
 const ENV_FILE = new URL("../scripts/test.env", import.meta.url).pathname;
+const ENV_EXAMPLE = new URL("../scripts/test.env.example", import.meta.url).pathname;
 const CLI_PATH = new URL("../src/cli.ts", import.meta.url).pathname;
 
 export function loadTestEnv(): Record<string, string> {
   if (!existsSync(ENV_FILE)) {
-    throw new Error(`Test env file not found: ${ENV_FILE}. Copy scripts/test.env.example to scripts/test.env`);
+    if (existsSync(ENV_EXAMPLE)) {
+      copyFileSync(ENV_EXAMPLE, ENV_FILE);
+    } else {
+      throw new Error(`Test env file not found: ${ENV_FILE}. Copy scripts/test.env.example to scripts/test.env`);
+    }
   }
   const content = readFileSync(ENV_FILE, "utf-8");
   const env: Record<string, string> = {};
