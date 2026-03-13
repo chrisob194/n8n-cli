@@ -15,7 +15,7 @@ const COMMAND_FLAGS: Record<string, Record<string, string[]>> = {
   },
   execution: {
     list: ["--status", "--workflow-id", "--project-id", "--include-data", "--limit", "--json"],
-    get: ["--include-data", "--json"],
+    get: ["--exclude-data", "--json"],
     delete: ["--json"],
     stop: ["--json"],
     "stop-all": ["--status", "--workflow-id", "--json"],

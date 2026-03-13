@@ -39,7 +39,7 @@ Workflow Commands:
 
 Execution Commands:
   execution list [--status <s>] [--workflow-id <id>] [--include-data] [--limit <n>]
-  execution get <id> [--include-data]
+  execution get <id> [--exclude-data]
   execution delete <id>
   execution stop <id>
   execution stop-all [--status <s>] [--workflow-id <id>]

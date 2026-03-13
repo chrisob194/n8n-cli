@@ -26,9 +26,9 @@ export async function handleExecutionCommand(args: string[], config: Config): Pr
   } else if (action === "get") {
     const id = args[1];
     if (!id) throw { code: 1, message: "Usage: n8n execution get <id>" };
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = { includeData: "true" };
     for (let i = 2; i < args.length; i++) {
-      if (args[i] === "--include-data") params["includeData"] = "true";
+      if (args[i] === "--exclude-data") delete params["includeData"];
     }
     const result = await request<unknown>(`/executions/${id}`, "GET", config, undefined, params);
     if (config.jsonMode) {
